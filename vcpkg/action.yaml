@@ -1,0 +1,51 @@
+name: 'vcpkg'
+description: 'Install vcpkg and setup environments'
+author: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Clone vcpkg repository
+      run: git clone https://github.com/microsoft/vcpkg
+      shell: bash
+
+    - name: Bootstrap vcpkg
+      run: |
+        if [[ ${{ runner.os }} == 'Windows' ]]; then
+          vcpkg/bootstrap-vcpkg.bat
+        elif [[ ${{ runner.os }} == 'Linux' || ${{ runner.os }} == 'macOS' ]]; then
+          vcpkg/bootstrap-vcpkg.sh
+        fi
+      shell: bash
+
+    - name: Set VCPKG_ROOT environment variable
+      run: |
+        echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> $GITHUB_ENV
+      shell: bash
+      
+    - name: Set CMAKE_TOOLCHAIN_FILE environment variable
+      run: |
+        echo "CMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Print VCPKG_ROOT
+      run: |
+        echo VCPKG_ROOT is $VCPKG_ROOT
+      shell: bash
+
+    - name: Add vcpkg to PATH
+      run: |
+             echo "$VCPKG_ROOT" >> $GITHUB_PATH
+      shell: bash
+ 
+
+
+    - name: Integrate VCPKG_ROOT
+      run: |
+        vcpkg integrate install
+      shell: bash
+
+    - name: Print vcpkg version
+      run: |
+        vcpkg version
+      shell: bash
